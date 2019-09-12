@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="es">
+  <head>
+    <title>Empleados</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" />
+    <link
+      rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" />
+
+    <style>
+      :root {
+        --grey-1: #fafafa;
+        --grey-2: #eaeaea;
+        --grey-3: #999999;
+        --grey-4: #666666;
+        --grey-5: #333333;
+        --blue: #0076ff;
+        --magenta: #ff0080;
+        --orange: #f5a623;
+        --yellow: #f8e71c;
+        --green: #50e3c2;
+      }
+      body {
+        background-color: var(--grey-2);
+      }
+      .employee-card {
+        background-color: white;
+        border-radius: 5px;
+        padding: 12px;
+        margin: 10px 0;
+        display: grid;
+        grid-gap: 15px;
+        grid-template-columns: min-content 340px repeat(3, max-content);
+        align-items: center;
+      }
+      .bg-yellow {
+        background-color: var(--yellow);
+      }
+      .form-add-employee {
+        margin: 10px 0;
+        display: grid;
+        grid-gap: 15px;
+        grid-template-columns: 1fr auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app"></div>
+
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.min.js"></script>
+
+
+    <script type="text/babel">
+      //Componente App (Class component)
+      class App extends React.Component {
+        constructor(){
+          super()
+          const employees = Array.from({ length: 30 }, () => ({
+            name: faker.name.findName(),
+            sector: faker.name.jobArea(),
+            avatar: faker.image.avatar(),
+            id: faker.random.uuid(),
+          }))
+          const sectors = employees.map(({ sector }) => sector)
+          const sectorsUnrepeated = new Set(sectors)
+          const sectorsArray = [...sectorsUnrepeated]
+          this.state = {
+            list: employees,
+            listBackup: employees,
+            employeeName: '',
+            idMonthEmployee: '',
+            sectors: sectorsArray,
+            dropdownActive: false,
+          }
+        }
+
+        //Aca van funciones
+        handleMonthEmployee = id =>{
+            console.log(id)
+            this.setState({
+                idMonthEmployee:id
+            })
+        }
+
+        handleInputChange = event => {
+            const {value} = event.target
+            this.setState({
+                employeeName: value
+            })
+            console.log(this.state.employeeName)
+        }
+
+        handleFormSubmit = event => {
+            event.preventDefault()
+            const {list, employeeName} = this.state
+            const newEmployee = {
+                name: employeeName,
+            sector: faker.name.jobArea(),
+            avatar: faker.image.avatar(),
+            id: faker.random.uuid(),
+            }
+
+            const newList = [newEmployee, ...list]
+
+            this.setState({
+                list:newList
+            })
+
+        }
+
+        render(){
+          return(
+            <div>
+              <HeaderComponent title="Lista de empleados"/>
+              <div className='container'>
+                <InputBar
+                employeeName = {this.state.employeeName}
+                onInputChange = {this.handleInputChange}
+                onFormSubmit={this.handleFormSubmit}
+                />
+                <UserList list={this.state.list} 
+                onSetMothEmployee={this.handleMonthEmployee}
+                idMonthEmployee={this.state.idMonthEmployee} />
+              </div>
+            </div>
+          )
+        }
+      }
+      //Componente Header (Functional Component)
+      const HeaderComponent = props => {
+        const {title} = props
+        return(
+          <section className="hero is-medium is-primary is-bold">
+            <div className="hero-body">
+              <div className="container">
+                <h1 className="title">
+                  {title}
+                </h1>
+              </div>
+            </div>
+          </section>
+          
+        )
+      }
+      //Componente InputBar (Functional Component)
+      const InputBar = props => {
+          const {employeeName, onInputChange, onFormSubmit} = props
+        return(
+          <form className='form-add-employee' 
+          onSubmit={onFormSubmit}>
+
+            <input
+            value={employeeName}
+              onChange = {onInputChange}
+            />
+            <button className='button is-success' type='submit'>
+              Agregar Empleado
+            </button>
+          </form>
+        )
+      }
+      
+      //Componente UsersList (Functional Component)
+      const UserList = props => {
+          const {list, idMonthEmployee ,onSetMothEmployee} = props
+        return(
+          <div>
+                {list.map(employee => 
+                <User 
+                key={employee.id} 
+                employee={employee} 
+                idMonthEmployee={idMonthEmployee}
+                onSetMothEmployee={onSetMothEmployee}
+                />)}
+          </div>
+          )
+          
+      }
+      //Componente User (Functional Component)
+      const User = props => {
+          const { employee, idMonthEmployee , onSetMothEmployee,} = props
+          const { name, avatar, sector, id } = employee
+          const isMonthEmployee = idMonthEmployee === id
+        return(
+          <div className={`employee-card ${isMonthEmployee ? 'bg-yellow': '' }`}>
+            <figure className='image is-64x64'>
+              <img className='is-rounded' src={avatar}/>
+            </figure>
+            <div>
+              <h2 className='is-size-3'>{name}</h2>
+              <h3 className='is-family-monospace'>{sector}</h3>
+            </div>
+            <button className='button is-primary'>
+              <span className='icon is-small'>
+                <i className='fas fa-edit' />
+              </span>
+              <span>Editar</span>
+            </button>
+            <button
+              className='button is-danger is-outlined'
+              
+            >
+              <span className='icon is-small'>
+                <i className='fas fa-times' />
+              </span>
+              <span>Eliminar</span>
+            </button>
+            {!isMonthEmployee && (
+            <button
+                className='button is-info'
+                onClick={()=> onSetMothEmployee(id)}
+               
+              >
+                <span className='icon is-small'>
+                  <i className='fas fa-award' />
+                </span>
+                <span>Empleado del mes</span>
+              </button>
+            )}
+          </div>
+        )
+      }
+      
+      //Componente Footer (Functional Component)
+      
+      const Footer = props => {
+        const {title} = props
+        return(
+            <footer className="footer">
+  <div className="content has-text-centered">
+    <p>
+      <strong>Bulma</strong> by <a href="https://jgthms.com">Jeremy Thomas</a>. The source code is licensed
+      <a href="http://opensource.org/licenses/mit-license.php">MIT</a>. The website content
+      is licensed <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY NC SA 4.0</a>.
+    </p>
+  </div>
+</footer>
+        )
+      }
+      ReactDOM.render(<App />, document.querySelector('#app'))
+    </script>
+
+  </body>
+</html>
